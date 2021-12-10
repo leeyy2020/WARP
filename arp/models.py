@@ -75,6 +75,7 @@ class ArpClassifier(Model):
         self._loss: Union[torch.nn.CrossEntropyLoss, torch.nn.MSELoss]
         self._accuracy: Optional[CategoricalAccuracy]
         if num_labels > 1:
+            
             self._loss = torch.nn.CrossEntropyLoss()
             self._accuracy = CategoricalAccuracy()
         else:
@@ -158,7 +159,32 @@ class ArpClassifier(Model):
             classifier_init=classifier_init,
             metrics=metrics,
         )
+    def contrastive_loss(self, sentence_embedding, label):
+        batch_num = len(sentence_embedding)
+        criterion = torch.nn.CrossEntropyLoss()
+        cos_sim = torch.nn.CosineSimilarity(dim=0, eps=1e-6)
+        loss = 0
+        label = label.cpu()
+        label = label.numpy()
+        for i in range(batch_num):
+            for j in range(batch_num):
+                sim = cos_sim(sentence_embedding[i], sentence_embedding[j])
+                # logit_sim = torch.tensor([(1 - sim) * 50, (1 + sim) * 50])
 
+                sim = sim.unsqueeze(0)
+
+                logit_sim = torch.cat(((1 - sim) * 50, (1 + sim) * 50),dim=-1)
+
+                if label[i] == label[j]:
+                    loss += criterion(logit_sim.view(-1, logit_sim.size(-1)), (torch.tensor(1, device='cuda:0').view(-1)))
+                else:
+                    loss += criterion(logit_sim.view(-1, logit_sim.size(-1)), (torch.tensor(0, device='cuda:0').view(-1)))
+                
+
+        loss = loss / (batch_num * batch_num - batch_num)
+        loss = loss / 100
+        return loss
+    
     def forward(  # type: ignore
         self, tokens: TextFieldTensors = None, label: torch.IntTensor = None, **metadata
     ) -> Dict[str, torch.Tensor]:
@@ -211,7 +237,10 @@ class ArpClassifier(Model):
 
         if label is not None:
             if self._num_labels > 1:
+                # logger.info("use this func")
                 loss = self._loss(logits, label.long().view(-1))
+                con_loss = self.contrastive_loss(text_embeddings,label)
+                loss = loss + 0.1 * con_loss
                 output_dict["loss"] = loss
 
                 assert self._accuracy is not None

@@ -14,7 +14,7 @@ local hparams = L.hparams.get({
     classifier_trainable: true,
     cross_validation: false,
     dataset: null,
-    dropout: null,
+    dropout: 0.1,
     ensure_whitespace_between: true,
     eval_mode: true,
     grad_norm: 1.0,
