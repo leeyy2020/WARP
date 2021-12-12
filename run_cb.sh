@@ -29,3 +29,4 @@ do
    -s .aim/few_cb/t-${DATASET}_seed_${seed} configs/warp.jsonnet
    rm -f .aim/few_cb/t-${DATASET}_seed_${seed}/model*
 done
+rm -rf .aim

@@ -240,7 +240,7 @@ class ArpClassifier(Model):
                 # logger.info("use this func")
                 loss = self._loss(logits, label.long().view(-1))
                 con_loss = self.contrastive_loss(text_embeddings,label)
-                loss = loss + 0.1 * con_loss
+                loss = loss + 0.3 * con_loss
                 output_dict["loss"] = loss
 
                 assert self._accuracy is not None

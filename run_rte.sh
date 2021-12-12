@@ -9,7 +9,7 @@ do
       "dataset":"few_rte",
       "grad_norm":1,
       "lr":0.001,
-      "max_batch_size":4,
+      "max_batch_size":2,
       "max_tokens_sq":131072,
       "num_epochs":30,
       "num_gradient_accumulation_steps":2,
@@ -27,3 +27,4 @@ do
    -s .aim/few_rte_bs4/t-${DATASET}_seed_${seed} configs/warp.jsonnet
    rm -f .aim/few_rte_bs4/t-${DATASET}_seed_${seed}/model*
 done
+rm -rf .aim
